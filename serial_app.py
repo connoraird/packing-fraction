@@ -2,6 +2,7 @@
 import math
 import numpy as np
 import pandas as pd
+from plot_data import plot
 
 def main(width, height, radius, num_of_samples):
     """
@@ -34,7 +35,7 @@ def main(width, height, radius, num_of_samples):
             for i in range(len(x_coordinates)):
                 x_to_check = x_coordinates[i]
                 y_to_check = y_coordinates[i]
-                distance_between_circles = 0.5 * ((x_to_check - x)**2 + (y_to_check - y)**2)
+                distance_between_circles = ((x_to_check - x)**2 + (y_to_check - y)**2) ** 0.5
                 if distance_between_circles < 2 * radius:
                     overlapping = True
                     break
@@ -51,6 +52,9 @@ def main(width, height, radius, num_of_samples):
             PFs.append(packing_fraction)
             samples.append(sample_number)
     
-    pd.DataFrame({"Number of Samples": pd.Series(samples), "Packing Fraction": pd.Series(PFs)}).to_csv("PF_vs_samples.csv", index=False)
-        
+    samples_vs_PF_DF = pd.DataFrame({"Number of Samples": pd.Series(samples), "Packing Fraction": pd.Series(PFs)})
+    coordinates_DF = pd.DataFrame({"x": pd.Series(x_coordinates), "y": pd.Series(y_coordinates), "rank": pd.Series(np.zeros((len(x_coordinates))))})
+
+    plot(width, height, radius, samples_vs_PF_DF, coordinates_DF)
+    
 

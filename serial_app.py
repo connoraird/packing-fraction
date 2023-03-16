@@ -2,7 +2,9 @@
 import math
 import numpy as np
 import pandas as pd
+
 from plot_data import plot
+from utils import circles_are_overlapping
 
 def main(width, height, radius, num_of_samples):
     """
@@ -35,8 +37,7 @@ def main(width, height, radius, num_of_samples):
             for i in range(len(x_coordinates)):
                 x_to_check = x_coordinates[i]
                 y_to_check = y_coordinates[i]
-                distance_between_circles = ((x_to_check - x)**2 + (y_to_check - y)**2) ** 0.5
-                if distance_between_circles < 2 * radius:
+                if circles_are_overlapping(x, y, x_to_check, y_to_check, radius):
                     overlapping = True
                     break
 

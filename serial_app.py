@@ -8,7 +8,14 @@ from utils import circles_are_overlapping
 
 def main(width, height, radius, num_of_samples):
     """
-    Calculates the packing fraction vs number of samples for a 2D box containing random samples of circles
+    Calculates the packing fraction (PF) for a 2D box containing random samples of circles and plots PF against samples.
+
+    :param float width: The width of the 2D box
+    :param float heigh: The height of the 2D box
+    :param float radius: the radius of circles to fill the box with
+    :param float num_of_samples: The total number of sample cirles to attempt to fit into the box 
+    
+    :return: the packing fraction
     """
     # Constants
     pi = 3.141592653589793238
@@ -51,5 +58,6 @@ def main(width, height, radius, num_of_samples):
     coordinates_DF = pd.DataFrame({"x": pd.Series(x_coordinates), "y": pd.Series(y_coordinates), "rank": pd.Series(np.zeros((len(x_coordinates))))})
 
     plot(width, height, radius, samples_vs_PF_DF, coordinates_DF)
-    
 
+    return packing_fraction
+    

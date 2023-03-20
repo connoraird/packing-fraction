@@ -38,3 +38,14 @@ Then run the app
 ## Outputs
 
 The program should output two graphs. One graph displays the circles within the box ([coordinates.png](./coordinates.png)) and the other the packing fraction vs the number of samples used ([PF_vs_samples.png](./PF_vs_samples.png)).
+
+## Tests
+
+To run the tests, first activate the virtual env
+```
+pipenv shell
+```
+then, run the tests
+```
+python -m unittest
+```

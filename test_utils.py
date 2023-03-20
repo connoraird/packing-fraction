@@ -1,4 +1,4 @@
-from utils import get_overlapping_circles, circles_are_overlapping
+from utils import get_overlapping_circles, new_circle_is_overlapping_existing_circles
 import unittest
 from parameterized import parameterized
 
@@ -29,10 +29,28 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(circles_to_remove, expected_circles_to_remove)
 
     @parameterized.expand([
-        [1, 2, 3, 4, 1, False],
-        [1, 2, 1, 2, 1, True],
-        [1, 2, 2, 2, 1, True]
+        [
+            1,
+            1,
+            [[1,2],[4,7]],
+            0.5,
+            False
+        ],
+        [
+            1,
+            1,
+            [[1,1.345],[4,7]],
+            0.5,
+            True
+        ],
+        [
+            1,
+            1,
+            [[1,2],[0.3,1.1]],
+            0.5,
+            True
+        ]
     ])
-    def test_circles_are_overlapping(self, x1, y1, x2, y2, radius, is_overlapping):
-        self.assertEqual(circles_are_overlapping(x1, y1, x2, y2, radius), is_overlapping)
+    def test_new_circle_is_overlapping_existing_circles(self, x, y, existing_circles, radius, is_overlapping):
+        self.assertEqual(new_circle_is_overlapping_existing_circles(x, y, existing_circles, radius), is_overlapping)
 

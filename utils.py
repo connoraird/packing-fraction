@@ -1,20 +1,6 @@
-def circles_are_overlapping(x1, y1, x2, y2, radius):
-    """
-    Checks if two circles of the same radius are overlapping
-    
-    :param float x1: The x coordinate of the first cirlce
-    :param float y1: The y coordinate of the first cirlce
-    :param float x2: The x coordinate of the second cirlce
-    :param float y2: The y coordinate of the second cirlce
-    :param float radius: The radius of circle 1 and 2
-
-    :return: True if overlapping False is not.
-    """
-    return (((x2 - x1)**2 + (y2 - y1)**2) ** 0.5) < (2 * radius)
-
 def get_overlapping_circles(fixed_list, changeable_list, radius):
     """
-    Determins the circles in one list that overlap those of another list.
+    Determines the circles in one list that overlap those of another list.
     
     :param list(list(float)) fixed_list: The first list of circles
     :param list(list(float)) changeable_list: The second list of circles
@@ -26,10 +12,26 @@ def get_overlapping_circles(fixed_list, changeable_list, radius):
     for circle1 in changeable_list:
         x1 = circle1[0]
         y1 = circle1[1]
-        for circle2 in fixed_list:
-            x2 = circle2[0]
-            y2 = circle2[1]
-            if circles_are_overlapping(x1, y1, x2, y2, radius):
-                circles_to_remove.append(circle1)
-                break
+        if new_circle_is_overlapping_existing_circles(x1, y1, fixed_list, radius):
+            circles_to_remove.append(circle1)
     return circles_to_remove
+
+def new_circle_is_overlapping_existing_circles(new_x, new_y, existing_circles, radius):
+    """
+    Checks if a new set of circle coordinates overlaps with any existing circles in a given list
+
+    :param float new_x: The x coordinate of the new circle
+    :param float new_y: The y coordinate of the new circle
+    :param list(list(float)) existing_circles: A list of existing circle coordinates
+    :param floar radius: The radius of every circle
+
+    :return: True is new cirlce overlaps an existing one, otherwise returns False
+    """
+    overlapping = False
+    for circle in existing_circles:
+        x_to_check = circle[0]
+        y_to_check = circle[1]
+        if (((x_to_check - new_x)**2 + (y_to_check - new_y)**2) ** 0.5) < (2 * radius):
+            overlapping = True
+            break
+    return overlapping

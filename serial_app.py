@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from plot_data import plot
-from utils import circles_are_overlapping
+from utils import new_circle_is_overlapping_existing_circles
 
 def main(width, height, radius, num_of_samples):
     """
@@ -23,8 +23,7 @@ def main(width, height, radius, num_of_samples):
     box_area = width * height
 
     # Data
-    x_coordinates = []
-    y_coordinates = []
+    coordinates = []
     PFs = [0]
     samples = [0]
 
@@ -33,21 +32,11 @@ def main(width, height, radius, num_of_samples):
         x = radius + np.random.random() * (width - radius * 2)
         y = radius + np.random.random() * (height - radius * 2)
 
-        # Check if the circle is overlapping another circle
-        overlapping = False
-        for i in range(len(x_coordinates)):
-            x_to_check = x_coordinates[i]
-            y_to_check = y_coordinates[i]
-            if circles_are_overlapping(x, y, x_to_check, y_to_check, radius):
-                overlapping = True
-                break
-
-        if not overlapping:
-            x_coordinates.append(x)
-            y_coordinates.append(y)
+        if not new_circle_is_overlapping_existing_circles(x, y, coordinates, radius):
+            coordinates.append([x,y])
 
         # Save data point
-        num_of_circles = len(x_coordinates)
+        num_of_circles = len(coordinates)
         if sample_number % math.floor(num_of_samples * 0.01) == 0:
             packing_fraction = (num_of_circles * circle_area) / box_area
             print(f"Packing fraction for {sample_number} samples and {num_of_circles} circles is {packing_fraction}")
@@ -55,7 +44,7 @@ def main(width, height, radius, num_of_samples):
             samples.append(sample_number)
     
     samples_vs_PF_DF = pd.DataFrame({"Number of Samples": pd.Series(samples), "Packing Fraction": pd.Series(PFs)})
-    coordinates_DF = pd.DataFrame({"x": pd.Series(x_coordinates), "y": pd.Series(y_coordinates), "rank": pd.Series(np.zeros((len(x_coordinates))))})
+    coordinates_DF = pd.DataFrame({"x": pd.Series([coord[0] for coord in coordinates]), "y": pd.Series([coord[1] for coord in coordinates]), "rank": pd.Series(np.zeros((len(coordinates))))})
 
     plot(width, height, radius, samples_vs_PF_DF, coordinates_DF)
 

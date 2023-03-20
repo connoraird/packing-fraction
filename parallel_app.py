@@ -5,8 +5,7 @@ from mpi4py import MPI
 import math
 
 from plot_data import plot
-from utils import circles_are_overlapping
-from utils import get_overlapping_circles
+from utils import get_overlapping_circles, new_circle_is_overlapping_existing_circles
 
 def main(width, height, radius, num_of_samples):
     """
@@ -75,31 +74,23 @@ def main(width, height, radius, num_of_samples):
         y = section_y_0 + np.random.random() * section_height
 
         # Check if the circle is fully in the box
-        overlapping = False
+        in_box = True
         if on_left:
             if x < radius:
-                overlapping = True
+                in_box = False
         else:
             if x > width - radius:
-                overlapping = True
+                in_box = False
         if on_bottom:
             if y < radius:
-                overlapping = True
+                in_box = False
         if on_top:
             if y > height - radius:
-                overlapping = True
+                in_box = False
                 
-        # Check if the circle is overlapping another circle within the section
         coordinates_for_one_processor = central_coordinates + right_edge + left_edge + top_edge + bottom_edge
-        for coordinate in coordinates_for_one_processor:
-            x_to_check = coordinate[0]
-            y_to_check = coordinate[1]
-            if circles_are_overlapping(x, y, x_to_check, y_to_check, radius):
-                overlapping = True
-                break
-        
         # Check if the circle is in an edge region
-        if not overlapping:
+        if in_box and not new_circle_is_overlapping_existing_circles(x, y, coordinates_for_one_processor, radius):
             in_halo = False
             if x > section_x_0 + section_width - radius:
                 in_halo = True
@@ -143,15 +134,13 @@ def main(width, height, radius, num_of_samples):
 
             if on_left:
                 right_halo_req.wait()
-            if send_veritcal_traffic and not on_bottom:
+            if send_veritcal_traffic and not on_top:
                 top_halo_req.wait()
 
     if rank == 0:
         samples_vs_PF_DF = pd.DataFrame({"Packing Fraction": pd.Series(packing_fractions), "Number of Samples": pd.Series(samples)})
         coordinates_DF = pd.DataFrame({"x": pd.Series([coord[0][0] for coord in all_coordinates]), "y": pd.Series([coord[0][1] for coord in all_coordinates]), "rank": pd.Series([coord[1] for coord in all_coordinates])})
         plot(width, height, radius, samples_vs_PF_DF, coordinates_DF)
-
-    return packing_fraction
 
 main(100, 100, 1, 100000)
 

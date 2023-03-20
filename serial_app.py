@@ -23,27 +23,21 @@ def main(width, height, radius, num_of_samples):
 
     for sample_number in range(num_of_samples):
         # Generate random coordinate 
-        x = np.random.random() * width
-        y = np.random.random() * height
+        x = radius + np.random.random() * (width - radius * 2)
+        y = radius + np.random.random() * (height - radius * 2)
 
-        left = x - radius
-        right = x + radius
-        bottom = y - radius
-        top = y + radius
-        # Check if the circle is fully in the box
-        if left > 0 and right < width and bottom > 0 and top < height:
-            # Check if the circle is overlapping another circle
-            overlapping = False
-            for i in range(len(x_coordinates)):
-                x_to_check = x_coordinates[i]
-                y_to_check = y_coordinates[i]
-                if circles_are_overlapping(x, y, x_to_check, y_to_check, radius):
-                    overlapping = True
-                    break
+        # Check if the circle is overlapping another circle
+        overlapping = False
+        for i in range(len(x_coordinates)):
+            x_to_check = x_coordinates[i]
+            y_to_check = y_coordinates[i]
+            if circles_are_overlapping(x, y, x_to_check, y_to_check, radius):
+                overlapping = True
+                break
 
-            if not overlapping:
-                x_coordinates.append(x)
-                y_coordinates.append(y)
+        if not overlapping:
+            x_coordinates.append(x)
+            y_coordinates.append(y)
 
         # Save data point
         num_of_circles = len(x_coordinates)

@@ -21,6 +21,7 @@ def main(width, height, radius, num_of_samples):
     pi = 3.141592653589793238
     circle_area = pi * (radius ** 2)
     box_area = width * height
+    batch_size = math.floor(num_of_samples * 0.01)
 
     # Data
     coordinates = []
@@ -37,7 +38,7 @@ def main(width, height, radius, num_of_samples):
 
         # Save data point
         num_of_circles = len(coordinates)
-        if sample_number % math.floor(num_of_samples * 0.01) == 0:
+        if sample_number % batch_size == 0 or sample_number == num_of_samples - 1:
             packing_fraction = (num_of_circles * circle_area) / box_area
             print(f"Packing fraction for {sample_number} samples and {num_of_circles} circles is {packing_fraction}")
             PFs.append(packing_fraction)

@@ -19,6 +19,7 @@ def main(width, height, radius, num_of_samples):
     """
     # Constants
     pi = 3.141592653589793238
+    diameter = 2*radius
     circle_area = pi * (radius ** 2)
     box_area = width * height
     batch_size = math.floor(num_of_samples * 0.01)
@@ -30,10 +31,10 @@ def main(width, height, radius, num_of_samples):
 
     for sample_number in range(num_of_samples):
         # Generate random coordinate 
-        x = radius + np.random.random() * (width - radius * 2)
-        y = radius + np.random.random() * (height - radius * 2)
+        x = radius + np.random.random() * (width - diameter)
+        y = radius + np.random.random() * (height - diameter)
 
-        if not new_circle_is_overlapping_existing_circles(x, y, coordinates, radius):
+        if not new_circle_is_overlapping_existing_circles(x, y, coordinates, diameter):
             coordinates.append([x,y])
 
         # Save data point

@@ -20,6 +20,7 @@ def main(width, height, radius, num_of_samples):
     """
     # Constants
     pi = 3.141592653589793238
+    diameter = 2 * radius
     circle_area = pi * (radius ** 2)
     box_area = width * height
 
@@ -45,8 +46,7 @@ def main(width, height, radius, num_of_samples):
     send_veritcal_traffic = num_processors > 2
 
     # Data
-    coordinates_for_one_processor = []
-    central_coordinates = []
+    coordinates = []
     right_edge = []
     left_edge = []
     top_edge = []
@@ -54,9 +54,9 @@ def main(width, height, radius, num_of_samples):
     packing_fractions = [0]
     samples = [0]
 
-    for sample_number in range(num_samples_per_processor):
+    for sample_index in range(num_samples_per_processor):
         # Create a data point if this is not the first sample and either we are at the last sample or we have done a 100th of the total samples
-        should_create_data_point = sample_number > 0 and (sample_number == num_samples_per_processor - 1 or (sample_number % math.floor(num_samples_per_processor * 0.01)) == 0)
+        should_create_data_point = sample_index > 0 and (sample_index == num_samples_per_processor - 1 or (sample_index % math.floor(num_samples_per_processor * 0.01)) == 0)
         if should_create_data_point:
             comm.barrier()
             if on_left:
@@ -69,65 +69,61 @@ def main(width, height, radius, num_of_samples):
                 if not on_bottom:
                     bottom_halo_rec = comm.irecv(source=rank - 2, tag=receive_up_message_tag)
         
-        # Generate random coordinate 
-        x = section_x_0 + np.random.random() * section_width 
-        y = section_y_0 + np.random.random() * section_height
+        # Generate random numbers
+        x_rand = np.random.random()
+        y_rand = np.random.random()
 
-        # Check if the circle is fully in the box
-        in_box = True
+        # Ensure the circle is fully in the box
         if on_left:
-            if x < radius:
-                in_box = False
+            x = radius + x_rand * (section_width - radius)
         else:
-            if x > width - radius:
-                in_box = False
-        if on_bottom:
-            if y < radius:
-                in_box = False
-        if on_top:
-            if y > height - radius:
-                in_box = False
+            x = section_x_0 + x_rand * (section_width - radius)
+        
+        if num_processors == 2:
+            y = radius + y_rand * (section_height - diameter)
+        else:
+            if on_bottom:
+                y = radius + y_rand * (section_height - radius)
+            elif on_top:
+                y = section_y_0 + y_rand * (section_height - radius)
+            else:
+                y = section_y_0 + y_rand * section_height
+        
+        circle = [x, y, sample_index]
                 
-        coordinates_for_one_processor = central_coordinates + right_edge + left_edge + top_edge + bottom_edge
         # Check if the circle is in an edge region
-        if in_box and not new_circle_is_overlapping_existing_circles(x, y, coordinates_for_one_processor, radius):
-            in_halo = False
-            if x > section_x_0 + section_width - radius:
-                in_halo = True
-                right_edge.append([x, y])
-            elif x < section_x_0 + radius:
-                in_halo = True
-                left_edge.append([x, y])
+        if not new_circle_is_overlapping_existing_circles(x, y, coordinates, diameter):
+            coordinates.append(circle)
+            if x > section_x_0 + section_width - diameter:
+                right_edge.append(circle)
+            elif x < section_x_0 + diameter:
+                left_edge.append(circle)
             
-            if y > section_y_0 + section_height - radius:
-                in_halo = True
-                top_edge.append([x,y])
-            elif y < section_y_0 + radius:
-                in_halo = True
-                bottom_edge.append([x, y])
+            if y > section_y_0 + section_height - diameter:
+                top_edge.append(circle)
+            elif y < section_y_0 + diameter:
+                bottom_edge.append(circle)
             
-            if not in_halo:
-                central_coordinates.append([x,y])
-
         if should_create_data_point:
             # Remove overlapping circles in different boxes
             if on_right:
                 received_left_halo = left_halo_rec.wait()
-                left_circles_to_remove = get_overlapping_circles(received_left_halo, left_edge, radius)
-                for circle in left_circles_to_remove:
-                    left_edge.remove(circle)
+                left_circles_to_remove = get_overlapping_circles(received_left_halo, left_edge, diameter)
+                left_edge = [left_edge_circle for left_edge_circle in left_edge if left_edge_circle[2] not in left_circles_to_remove]
+                coordinates = [circle for circle in coordinates if circle[2] not in left_circles_to_remove]
             
             if send_veritcal_traffic and not on_bottom:
                 received_bottom_halo = bottom_halo_rec.wait()
-                bottom_circles_to_remove = get_overlapping_circles(received_bottom_halo, bottom_edge, radius)
-                for circle in bottom_circles_to_remove:
-                    bottom_edge.remove(circle)
+                bottom_circles_to_remove = get_overlapping_circles(received_bottom_halo, bottom_edge, diameter)
+                left_edge = [bottom_edge_circle for bottom_edge_circle in bottom_edge if bottom_edge_circle[2] not in bottom_circles_to_remove]
+                coordinates = [circle for circle in coordinates if circle[2] not in bottom_circles_to_remove]
 
             # Save data point
-            all_coordinates = comm.reduce([[coord, rank] for coord in central_coordinates + right_edge + left_edge + top_edge + bottom_edge], root=0)
+            all_coordinates = comm.reduce([[coord, rank] for coord in coordinates], root=0)
             if rank == 0:
                 num_of_circles = len(all_coordinates)
                 packing_fraction = (num_of_circles * circle_area) / box_area
+                sample_number = sample_index + 1
                 print(f"For rank {rank}, {sample_number * num_processors} samples and {num_of_circles} circles Packing fraction is {packing_fraction}")
                 packing_fractions.append(packing_fraction)
                 samples.append(sample_number * num_processors)

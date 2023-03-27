@@ -1,4 +1,4 @@
-def get_overlapping_circles(fixed_list, changeable_list, radius):
+def get_overlapping_circles(fixed_list, changeable_list, diameter):
     """
     Determines the circles in one list that overlap those of another list.
     
@@ -12,11 +12,11 @@ def get_overlapping_circles(fixed_list, changeable_list, radius):
     for circle1 in changeable_list:
         x1 = circle1[0]
         y1 = circle1[1]
-        if new_circle_is_overlapping_existing_circles(x1, y1, fixed_list, radius):
-            circles_to_remove.append(circle1)
+        if new_circle_is_overlapping_existing_circles(x1, y1, fixed_list, diameter):
+            circles_to_remove.append(circle1[2])
     return circles_to_remove
 
-def new_circle_is_overlapping_existing_circles(new_x, new_y, existing_circles, radius):
+def new_circle_is_overlapping_existing_circles(new_x, new_y, existing_circles, diameter):
     """
     Checks if a new set of circle coordinates overlaps with any existing circles in a given list
 
@@ -31,7 +31,7 @@ def new_circle_is_overlapping_existing_circles(new_x, new_y, existing_circles, r
     for circle in existing_circles:
         x_to_check = circle[0]
         y_to_check = circle[1]
-        if (((x_to_check - new_x)**2 + (y_to_check - new_y)**2) ** 0.5) < (2 * radius):
+        if (((x_to_check - new_x)**2 + (y_to_check - new_y)**2) ** 0.5) < diameter:
             overlapping = True
             break
     return overlapping
